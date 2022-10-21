@@ -354,6 +354,12 @@ def _convert_json_ld_recipe(rec: Dict,
     return d
 
 
+def _is_recipe(rec_type):
+    if isinstance(rec_type, str) and rec.get('@type') == 'Recipe' \
+        or isinstance(rec_type, list) and 'Recipe' in rec_type:
+        return True
+    return False
+
 def _convert_to_scrapings(data: Dict[str, List[Dict]],
                           nonstandard_attrs: bool = False,
                           url: str = None) -> List[Dict]:
@@ -361,14 +367,14 @@ def _convert_to_scrapings(data: Dict[str, List[Dict]],
     out = []
     if data['json-ld'] != []:
         for rec in data['json-ld']:
-            if rec.get('@type') == 'Recipe':
+            if _is_recipe(rec.get('@type')):
                 d = _convert_json_ld_recipe(rec, nonstandard_attrs, url)
                 out.append(d)
 
             if rec.get('@context') == 'https://schema.org' and '@graph' in rec.keys():
                 # walk the graph
                 for subrec in rec['@graph']:
-                    if subrec['@type'] == 'Recipe':
+                    if _is_recipe(subrec.get('@type')):
                         d = _convert_json_ld_recipe(subrec, nonstandard_attrs, url)
                         out.append(d)
 
